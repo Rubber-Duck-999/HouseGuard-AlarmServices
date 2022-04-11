@@ -1,59 +1,96 @@
 import os
 import logging
 import json
+import time
+import utilities
+from emailer import Emailer
 
-file = ''
+filename = '/home/{}/sync/ping.log'
+
 try:
-    user = os.getlogin()
-    file = '/home/{}/sync/ping.log'.format(user)
-    os.remove(file)
+    name = utilities.get_user()
+    filename = filename.format(name)
+    os.remove(filename)
 except OSError as error:
     pass
 
+
 # Add the log message handler to the logger
-logging.basicConfig(filename=file,
+logging.basicConfig(filename=filename,
                     format='%(asctime)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
 logging.info("Starting program")
 
-def get_settings():
-    '''Get config env var'''
-    logging.info('get_settings()')
-    admins = []
-    hosts = []
-    try:
-        username = os.getlogin()
-        config_name = '/home/{}/sync/config.json'.format(username)
-        with open(config_name) as file:
-            data = json.load(file)
-        addresses = data["ip_addresses"]
-        hosts     = addresses["hosts"]
-        admins    = addresses["admins"]
-    except KeyError:
-        logging.info("Variables not set")
-    except FileNotFoundError:
-        logging.info('File not found')
-    except IOError:
-        logging.info('Could not read file')
-    return hosts, admins
+class Ping:
 
-def ping_check(host):
-    success = False
-    try:
-        response = os.system("ping -qc 3 {}".format(host))
-        # and then check the response...
-        if response == 0:
-            logging.info('Success on checks')
-            success = True
-    except OSError as error:
-        logging.error('Check failed on {}'.format(error))
-    return success
+    def __init__(self):
+        self.hosts = [
+            {
+                "IP": "192.168.0.1",
+                "State": False
+            },
+            {
+                "IP": "192.168.0.11",
+                "State": False
+            },
+            {
+                "IP": "192.168.0.14",
+                "State": False
+            },
+            {
+                "IP": "192.168.0.15",
+                "State": False
+            },
+            {
+                "IP": "192.168.0.21",
+                "State": False
+            },
+            {
+                "IP": "192.168.0.38",
+                "State": False
+            },
+            {
+                "IP": "192.168.0.42",
+                "State": False
+            }
+        ]
+        self.admin = {
+            "IP": "192.168.0.48",
+            "State": False
+        }
+
+    def ping_check(self, host):
+        success = False
+        try:
+            response = os.system("ping -qc 3 {}".format(host))
+            # and then check the response...
+            if response == 0:
+                logging.info('Success on checks')
+                success = True
+        except OSError as error:
+            logging.error('Check failed on {}'.format(error))
+        return success
+
+    def loop(self):
+        '''Loop through sensor and publish'''
+        while True:
+            admin_state_change = False
+            for host in self.hosts:
+                host["State"] = self.ping_check(host["IP"])
+                logging.info('Address: {}, Attempted ping: {}'.format(host["IP"], host["State"]))
+            state = self.ping_check(self.admin["IP"])
+            if state != self.admin["State"]:
+                admin_state_change = True
+            logging.info('Address: {}, Attempted ping: {}'.format(self.admin["IP"], self.admin["State"]))
+            host["State"] = state
+            if admin_state_change:
+                email = Emailer(self.admin["IP"], self.admin["State"], self.hosts)
+                email.get_config()
+                email.send()
+            admin_state_change = False
+            time.sleep(60 * 15)
+
 
 if __name__ == "__main__":
-    hosts, admins = get_settings()
-    for address in hosts:
-        success = ping_check(address)
-        logging.info('Attempted ping: {}'.format(success))
-    for address in admins:
-        success = ping_check(address)
-        logging.info('Attempted ping: {}'.format(success))
+    ping = Ping()
+    ping.loop()
