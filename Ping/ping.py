@@ -83,7 +83,7 @@ class Ping:
             if state != self.admin["State"]:
                 admin_state_change = True
             logging.info('Address: {}, Attempted ping: {}'.format(self.admin["IP"], self.admin["State"]))
-            host["State"] = state
+            self.admin["State"] = state
             if admin_state_change:
                 email = Emailer(self.admin["IP"], self.admin["State"], self.hosts)
                 email.get_config()
