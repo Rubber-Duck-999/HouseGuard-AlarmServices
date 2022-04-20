@@ -85,9 +85,9 @@ class Ping:
             state = self.ping_check(self.admin)
             logging.info('Address: {}, Attempted ping: {}'.format(self.admin, state))
             if state:
-                self.publish_data(1)
-            else:
                 self.publish_data(0)
+            else:
+                self.publish_data(1)
             time.sleep(60 * 3)
 
 

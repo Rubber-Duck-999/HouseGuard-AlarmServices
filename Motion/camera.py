@@ -37,7 +37,7 @@ class Camera:
             logging.error("Camera failure")
 
     def check_motion(self, frame):
-        '''Calcultes whether a motion has occurred'''
+        '''Calculates whether a motion has occurred'''
         # check to see if the room is occupied
         if self.motion:
             # check to see if enough time has passed between uploads
@@ -52,13 +52,14 @@ class Camera:
                     current = self.timestamp.strftime("%d:%m:%Y-%H:%M:%S")
                     filename = "{}/{}.jpg".format('/home/pi/Desktop/cam_images', current)
                     logging.info("Creating file: {}".format(filename))
-                    cv2.imwrite(filename, frame)
-                    colorImage  = Image.open(filename)
-                    transposed  = colorImage.rotate(180)
-                    transposed.save(filename)
-                    logging.info("Image created")
-                    # Call other object to send image
-                    self.api.publish_data(filename)
+                    if self.api.check_alarm():
+                        cv2.imwrite(filename, frame)
+                        colorImage  = Image.open(filename)
+                        transposed  = colorImage.rotate(180)
+                        transposed.save(filename)
+                        logging.info("Image created")
+                        # Call other object to send image
+                        self.api.publish_data(filename)
                     self.last_uploaded = self.timestamp
                     self.motion_counter = 0
         # otherwise, the room is not occupied

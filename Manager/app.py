@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 '''Python script to send emails on server'''
-from datetime import datetime
+from emailer import Emailer
 import logging
 import logging.handlers
 import os
@@ -33,6 +33,7 @@ class Server(Flask):
         self.route('/', methods=['GET'])(self.get_list)
         self.route('/alarm', methods=['POST'])(self.set_alarm)
         self.route('/alarm', methods=['GET'])(self.get_alarm)
+        self.route('/motion', methods=['POST'])(self.add_motion)
         self.state = State()
         self.request_result = False
 
@@ -72,6 +73,19 @@ class Server(Flask):
         # Ensure wrong days are not entered
         self.request_result, results = self.state.get_alarm()
         data = self.result(results)
+        return jsonify(data)
+
+    def add_motion(self):
+        logging.info('# add_motion()')
+        # Ensure wrong days are not entered
+        request_data = request.get_json()
+        result = self.get_alarm()
+        if result['data']['status'] == 1:
+            
+        if request_data:
+            emailer = Emailer()
+            self.request_result = emailer.send(request_data['image'])
+        data = self.result()
         return jsonify(data)
 
 if __name__ == "__main__":

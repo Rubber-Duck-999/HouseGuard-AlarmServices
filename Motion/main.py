@@ -3,16 +3,23 @@
 import os
 import logging
 import json
+import utilities
 from camera import Camera
 
-try:
-	os.remove('/home/pi/Documents/logs/motion.log')
-except:
-	print("The log did not exist")
+filename = '/home/{}/sync/manager.log'
 
-logging.basicConfig(filename='/home/pi/Documents/logs/motion.log',
-                    format='%(asctime)s - %(levelname)s - %(message)s', 
+try:
+    name = utilities.get_user()
+    filename = filename.format(name)
+    os.remove(filename)
+except OSError as error:
+    pass
+
+# Add the log message handler to the logger
+logging.basicConfig(filename=filename,
+                    format='%(asctime)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
+
 logging.info("Starting program")
 
 class FileNotFound(Exception):
@@ -27,7 +34,7 @@ class Motion():
     def get_settings(self):
         '''Get config env var'''
         logging.info('get_settings()')
-        config_name = '/home/pi/Documents/HouseGuardServices/config.json'
+        config_name = '/home/{}/sync/config.json'.format(utilities.get_user())
         try:
             if not os.path.isfile(config_name):
                 raise FileNotFound('File is missing')
