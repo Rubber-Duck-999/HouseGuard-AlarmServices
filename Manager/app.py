@@ -11,7 +11,7 @@ from flask import Flask, request, jsonify
 app = Flask(__name__)
 
 
-filename = '/home/{}/sync/notifier.log'
+filename = '/home/{}/sync/manager.log'
 
 try:
     name = utilities.get_user()
@@ -31,27 +31,21 @@ class Server(Flask):
         '''Constructor for flask API methods'''
         super(Server, self).__init__(import_name)
         self.route('/', methods=['GET'])(self.get_list)
-        self.route('/admin', methods=['GET'])(self.get_admin)
-        self.route('/admin', methods=['POST'])(self.set_admin)
-        self.route('/host', methods=['POST'])(self.set_host)
-        self.route('/host', methods=['GET'])(self.get_host)
+        self.route('/alarm', methods=['POST'])(self.set_alarm)
+        self.route('/alarm', methods=['GET'])(self.get_alarm)
         self.state = State()
         self.request_result = False
 
     def get_list(self):
         data = {
-            "admin": [
-                "GET",
-                "POST"
-            ],
-            "host": [
+            "alarm": [
                 "GET",
                 "POST"
             ]
         }
         return jsonify(data)
 
-    def result(self, results=None):
+    def result(self, results={}):
         '''Converts bool to string'''
         logging.info('# result()')
         data = {
@@ -64,21 +58,21 @@ class Server(Flask):
             }
         return data
 
-    def get_host(self):
-        logging.info('# get_host()')
+    def set_alarm(self):
+        logging.info('# set_alarm()')
         # Ensure wrong days are not entered
-        self.request_result, results = self.state.get_temperature()
-        data = self.result(results)
-        return jsonify(data)
-
-    def set_host(self):
-        logging.info('# set_host()')
         request_data = request.get_json()
         if request_data:
-            self.request_result = self.state.add_temperature(request_data)
+            self.request_result = self.state.update_alarm(request_data)
         data = self.result()
         return jsonify(data)
 
+    def get_alarm(self):
+        logging.info('# get_alarm()')
+        # Ensure wrong days are not entered
+        self.request_result, results = self.state.get_alarm()
+        data = self.result(results)
+        return jsonify(data)
 
 if __name__ == "__main__":
     logging.info("Starting program")
