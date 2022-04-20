@@ -1,10 +1,10 @@
 #!/usr/bin/python3
 import os
 import logging
-import json
 import time
 import utilities
-from emailer import Emailer
+import requests
+import json
 
 filename = '/home/{}/sync/ping.log'
 
@@ -22,43 +22,33 @@ logging.basicConfig(filename=filename,
                     level=logging.INFO)
 logging.info("Starting program")
 
+class FileNotFound(Exception):
+    '''Exception class for file checking'''
+
 class Ping:
 
     def __init__(self):
-        self.hosts = [
-            {
-                "IP": "192.168.0.1",
-                "State": False
-            },
-            {
-                "IP": "192.168.0.11",
-                "State": False
-            },
-            {
-                "IP": "192.168.0.14",
-                "State": False
-            },
-            {
-                "IP": "192.168.0.15",
-                "State": False
-            },
-            {
-                "IP": "192.168.0.21",
-                "State": False
-            },
-            {
-                "IP": "192.168.0.38",
-                "State": False
-            },
-            {
-                "IP": "192.168.0.42",
-                "State": False
-            }
-        ]
-        self.admin = {
-            "IP": "192.168.0.48",
-            "State": False
-        }
+        self.admin = "192.168.0.48"
+        self.send_data  = False
+        self.server_address = ''
+
+    def get_settings(self):
+        '''Get config env var'''
+        logging.info('get_settings()')
+        name = utilities.get_user()
+        config_name = '/home/{}/sync/config.json'
+        config_name = config_name.format(name)
+        try:
+            if not os.path.isfile(config_name):
+                raise FileNotFound('File is missing')
+            with open(config_name) as file:
+                data = json.load(file)
+            self.server_address = '{}/alarm'.format(data["alarm-rest"])
+            self.send_data = True
+        except KeyError:
+            logging.error("Variables not set")
+        except FileNotFound:
+            logging.error("File is missing")
 
     def ping_check(self, host):
         success = False
@@ -72,26 +62,36 @@ class Ping:
             logging.error('Check failed on {}'.format(error))
         return success
 
+    def publish_data(self, status):
+        '''Send data to server if asked'''
+        if self.send_data:
+            data = {
+                'status': status
+            }
+            try:
+                response = requests.post(self.server_address, json=data, timeout=5)
+                if response.status_code == 200:
+                    logging.info("Requests successful")
+                else:
+                    logging.error('Response: {}'.format(response))
+            except requests.ConnectionError as error:
+                logging.error("Connection error: {}".format(error))
+            except requests.Timeout as error:
+                logging.error("Timeout on server: {}".format(error))
+
     def loop(self):
         '''Loop through sensor and publish'''
         while True:
-            admin_state_change = False
-            for host in self.hosts:
-                host["State"] = self.ping_check(host["IP"])
-                logging.info('Address: {}, Attempted ping: {}'.format(host["IP"], host["State"]))
-            state = self.ping_check(self.admin["IP"])
-            if state != self.admin["State"]:
-                admin_state_change = True
-            logging.info('Address: {}, Attempted ping: {}'.format(self.admin["IP"], self.admin["State"]))
-            self.admin["State"] = state
-            if admin_state_change:
-                email = Emailer(self.admin["IP"], self.admin["State"], self.hosts)
-                email.get_config()
-                email.send()
-            admin_state_change = False
-            time.sleep(60 * 15)
+            state = self.ping_check(self.admin)
+            logging.info('Address: {}, Attempted ping: {}'.format(self.admin, state))
+            if state:
+                self.publish_data(1)
+            else:
+                self.publish_data(0)
+            time.sleep(60 * 3)
 
 
 if __name__ == "__main__":
     ping = Ping()
+    ping.get_settings()
     ping.loop()
