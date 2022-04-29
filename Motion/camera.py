@@ -67,7 +67,7 @@ class Camera:
             self.motion_counter = 0
 
     def check_motion_capture(self):
-        '''Calcultes whether a human or colour shade has drastically
+        '''Calculates whether a human or colour shade has drastically
         changed the raw image'''
         logging.info('check_motion_capture()')
         average_frame = None
