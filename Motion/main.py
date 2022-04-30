@@ -6,7 +6,7 @@ import json
 import utilities
 from camera import Camera
 
-filename = '/home/{}/sync/manager.log'
+filename = '/home/{}/sync/motion.log'
 
 try:
     name = utilities.get_user()
