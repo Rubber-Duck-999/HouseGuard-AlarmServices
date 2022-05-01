@@ -112,6 +112,7 @@ class Camera:
                 self.motion = True
             self.check_motion(frame)
             self.raw_capture.truncate(0)
+            time.sleep(15)
 
     def run_capture(self):
         '''Setup for running capture'''
