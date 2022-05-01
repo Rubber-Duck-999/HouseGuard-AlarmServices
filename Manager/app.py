@@ -81,13 +81,18 @@ class Server(Flask):
     def add_motion(self):
         logging.info('# add_motion()')
         request_data = request.get_json()
-        result = self.get_alarm()
+        try:
+            result = self.get_alarm()
+            status = result['data']['status']
+        except KeyError as error:
+            logging.error('Key error on result')
+        '''
         if result['status'] == 1:
             if request_data:
                 emailer = Emailer()
                 #self.request_result = emailer.send(request_data['image'])
         else:
-            logging.info('Alarm is Off')
+            logging.info('Alarm is Off')'''
         data = self.result()
         return jsonify(data)
 
