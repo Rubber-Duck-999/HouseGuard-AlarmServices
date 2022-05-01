@@ -82,8 +82,8 @@ class Server(Flask):
         logging.info('# add_motion()')
         request_data = request.get_json()
         try:
-            result = self.state.get_alarm()
-            status = result['status']
+            self.request_result, results = self.state.get_alarm()
+            status = results['status']
             logging.info(status)
         except KeyError as error:
             logging.error('Key error on result')
