@@ -21,6 +21,7 @@ class Api:
                 os.remove(filename)
             else:
                 logging.error('Requests unsuccessful')
+                logging.info('Response: {}'.format(response))
         except requests.ConnectionError as error:
             logging.error("Connection error: {}".format(error))
         except requests.Timeout as error:
