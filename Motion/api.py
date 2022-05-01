@@ -14,7 +14,7 @@ class Api:
             data = {
                 'image': filename
             }
-            response = requests.post(self.server.format('motion'), json=data, timeout=5)
+            response = requests.post(self.server, json=data, timeout=5)
             if response.status_code == 200:
                 logging.info("Requests successful")
                 logging.info('Response: {}'.format(response))
