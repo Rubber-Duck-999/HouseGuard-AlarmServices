@@ -87,6 +87,8 @@ class Server(Flask):
             logging.info(status)
         except KeyError as error:
             logging.error('Key error on result')
+        except TypeError as error:
+            logging.error('Type error on result')
         '''
         if result['status'] == 1:
             if request_data:
