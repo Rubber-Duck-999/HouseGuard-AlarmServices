@@ -81,8 +81,8 @@ class Server(Flask):
     def add_motion(self):
         logging.info('# add_motion()')
         request_data = request.get_json()
-        '''result = self.get_alarm()
-        if result['data']['status'] == 1:
+        result = self.get_alarm()
+        '''if result['data']['status'] == 1:
             if request_data:
                 emailer = Emailer()
                 self.request_result = emailer.send(request_data['image'])
