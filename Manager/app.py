@@ -84,18 +84,16 @@ class Server(Flask):
         try:
             self.request_result, results = self.state.get_alarm()
             status = results['status']
-            logging.info(status)
+            if status == 1:
+                if request_data:
+                    emailer = Emailer()
+                    self.request_result = emailer.send(request_data['image'])
+            else:
+                logging.info('Alarm is Off')
         except KeyError as error:
-            logging.error('Key error on result')
+            logging.error('Key error on result: {}'.format(error))
         except TypeError as error:
-            logging.error('Type error on result')
-        '''
-        if result['status'] == 1:
-            if request_data:
-                emailer = Emailer()
-                #self.request_result = emailer.send(request_data['image'])
-        else:
-            logging.info('Alarm is Off')'''
+            logging.error('Type error on result: {}'.format(error))
         data = self.result()
         return jsonify(data)
 
