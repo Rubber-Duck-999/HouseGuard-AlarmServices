@@ -64,6 +64,7 @@ class Camera:
         # otherwise, the room is not occupied
         else:
             self.motion_counter = 0
+        time.sleep(60)
 
     def check_motion_capture(self):
         '''Calculates whether a human or colour shade has drastically

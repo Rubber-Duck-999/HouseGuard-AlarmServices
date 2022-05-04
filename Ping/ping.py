@@ -28,7 +28,7 @@ class FileNotFound(Exception):
 class Ping:
 
     def __init__(self):
-        self.admin = "192.168.0.48"
+        self.admin = ["192.168.0.29", "192.168.0.48"]
         self.send_data  = False
         self.server_address = ''
 
@@ -82,8 +82,11 @@ class Ping:
     def loop(self):
         '''Loop through sensor and publish'''
         while True:
-            state = self.ping_check(self.admin)
-            logging.info('Address: {}, Attempted ping: {}'.format(self.admin, state))
+            state = False
+            for admin in self.admin:
+                if not state:
+                    state = self.ping_check(admin)
+                logging.info('Address: {}, Attempted ping: {}'.format(admin, state))
             if state:
                 self.publish_data(0)
             else:
