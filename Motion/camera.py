@@ -41,7 +41,7 @@ class Camera:
         # check to see if the room is occupied
         if self.motion:
             # check to see if enough time has passed between uploads
-            if (self.timestamp - self.last_uploaded).total_seconds() >= 3.0:
+            if (self.timestamp - self.last_uploaded).total_seconds() >= 10.0:
                 # increment the motion counter
                 self.motion_counter = self.motion_counter + 1
                 # check to see if the number of frames with consistent motion is
@@ -61,7 +61,6 @@ class Camera:
                     self.api.publish_data(filename)
                     self.last_uploaded = self.timestamp
                     self.motion_counter = 0
-                    time.sleep(5)
         # otherwise, the room is not occupied
         else:
             self.motion_counter = 0
