@@ -61,10 +61,10 @@ class Camera:
                     self.api.publish_data(filename)
                     self.last_uploaded = self.timestamp
                     self.motion_counter = 0
+                    time.sleep(5)
         # otherwise, the room is not occupied
         else:
             self.motion_counter = 0
-        time.sleep(60)
 
     def check_motion_capture(self):
         '''Calculates whether a human or colour shade has drastically
@@ -113,7 +113,6 @@ class Camera:
                 self.motion = True
             self.check_motion(frame)
             self.raw_capture.truncate(0)
-            time.sleep(15)
 
     def run_capture(self):
         '''Setup for running capture'''
